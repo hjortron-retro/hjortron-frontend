@@ -5,15 +5,13 @@
 
 #define ROM_ENTRIES 7
 
-SDL_Color black = {0, 0, 0};
-
 extern scene_t run_game_scene;
 
 typedef struct {
     scraper_rom_entry_t entries[ROM_ENTRIES];
     size_t entry_cnt;
-    uint32_t offset;
-    uint32_t index;
+    int32_t offset;
+    int32_t index;
 } main_scene_data_t;
 
 static int
@@ -46,7 +44,7 @@ _main_scene_mount(struct scene_t *scene, void *opaque)
     main_scene_data_t *data = scene->opaque;
 
     /* fetch first set of available roms */
-    data->offset = 0;
+    data->index = data->offset = 0;
     _main_scene_update_rom_entries(scene);
 
     return 0;
@@ -55,7 +53,6 @@ _main_scene_mount(struct scene_t *scene, void *opaque)
 static void
 _main_scene_unmount(struct scene_t *scene)
 {
-
 }
 
 static void
@@ -65,16 +62,18 @@ _main_scene_render_front(struct scene_t *scene)
     int w, h;
     SDL_Rect d;
     main_scene_data_t *data = scene->opaque;
+    SDL_Color black = {0, 0, 0};
 
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
 
     d.x = d.y = 0;
+    d.x = 32 + 4;
     d.w = w;
     d.h = h / ROM_ENTRIES;
     for (i = 0; i < data->entry_cnt; i++)
     {
-        draw_centered_text(scene->engine->renderer, scene->engine->font,
-            black, data->entries[i].name, &d);
+        draw_text(scene->engine->renderer, scene->engine->font,
+            black, ALIGN_LEFT, data->entries[i].name, &d);
 
         d.y += d.h;
     }
@@ -86,16 +85,26 @@ _main_scene_render_back(struct scene_t *scene)
 {
     int w, h;
     SDL_Rect center;
+    main_scene_data_t *data = scene->opaque;
 
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
     SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
     SDL_RenderClear(scene->engine->renderer);
 
-    /* draw center line highlight */
+    /* draw side menu bar */
     center.x = center.y = 0;
+    center.w = 32;
+    center.h = h;
+    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
+    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(scene->engine->renderer, &center);
+
+
+    /* draw item cursor line highlight */
+    center.x = 32;
     center.w = w;
     center.h = h/ROM_ENTRIES;
-    center.y = center.h * (ROM_ENTRIES/2);
+    center.y = data->index * center.h;
     SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
     SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
 
@@ -123,15 +132,22 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
         if (event->caxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
         {
             if (event->caxis.value > 0)
-                data->offset++;
+                data->index++;
             else
+                data->index--;
+
+            if (data->index < 0)
+            {
                 data->offset--;
-
-            if (data->offset < 0)
-                data->offset = 0;
-
-            _main_scene_update_rom_entries(scene);
-
+                data->index = 0;
+                _main_scene_update_rom_entries(scene);
+            }
+            else if (data->index >= ROM_ENTRIES)
+            {
+                data->offset++;
+                data->index = ROM_ENTRIES - 1;
+                _main_scene_update_rom_entries(scene);
+            }
         }
     }
     else if (event->type == SDL_CONTROLLERBUTTONDOWN)
@@ -139,7 +155,7 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
         if (event->cbutton.button == SDL_CONTROLLER_BUTTON_A)
         {
             /* Do menu item action */
-            if (engine_push_scene(scene->engine, &run_game_scene, &data->entries[0]) != 0)
+            if (engine_push_scene(scene->engine, &run_game_scene, &data->entries[data->index]) != 0)
             {
                 fprintf(stderr, "Failed to run game...\n");
             }
