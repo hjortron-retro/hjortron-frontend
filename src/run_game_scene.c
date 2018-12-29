@@ -5,6 +5,8 @@
 #include <SDL_ttf.h>
 #include <asoundlib.h>
 
+extern scene_t game_menu_scene;
+
 typedef struct {
     engine_t *engine;
     SDL_Texture *screen;
@@ -336,13 +338,17 @@ _run_game_scene_tick(struct scene_t *scene)
 static void
 _run_game_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 {
-    //run_game_scene_data_t *data = scene->opaque;
-
+    run_game_scene_data_t *data = scene->opaque;
     if (event->type == SDL_CONTROLLERAXISMOTION)
     {
     }
     else if (event->type == SDL_CONTROLLERBUTTONDOWN)
     {
+        if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+        {
+            snd_pcm_drain(data->pcm);
+            engine_push_scene(scene->engine, &game_menu_scene, &data->rom_entry);
+        }
     }
 }
 
