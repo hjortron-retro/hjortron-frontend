@@ -2,6 +2,8 @@
 #define _scraper_h
 
 #include <sqlite3.h>
+
+#include "romident.h"
 #include "core.h"
 
 typedef struct scraper_rom_entry_t  {
@@ -11,6 +13,7 @@ typedef struct scraper_rom_entry_t  {
 } scraper_rom_entry_t;
 
 typedef struct scraper_t {
+  romident_t ident;
   sqlite3 *db;
 } scraper_t;
 

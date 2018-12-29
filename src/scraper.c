@@ -111,6 +111,9 @@ int
 scraper_init(scraper_t *scraper)
 {
   memset(scraper, 0, sizeof(scraper_t));
+
+  romident_init(&scraper->ident);
+
   if (sqlite3_open("./hjortron.db", &scraper->db) != SQLITE_OK)
   {
     return 1;
@@ -226,15 +229,18 @@ scraper_scan_directory(scraper_t *scraper, core_collection_t *cores, const char 
 
         /* TODO: if file is zip, then scan content */
 
-        /* TODO: calculate crc32 */
-
-        /* TODO: consider lookup rom in rdb by crc32 for additional info */
         char *ps;
         char name[1024];
         snprintf(name, sizeof(name), "%s", entry->d_name);
         ps = strrchr(name, '.');
         if (ps)
           *ps='\0';
+
+        romident_rom_data_t rom;
+        if (romident_identify(&scraper->ident, path, &rom) != 0)
+          continue;
+
+        /* TODO: consider lookup rom in rdb by crc32 for additional info */
 
         _scraper_db_add_rom(scraper, core, path, name);
     }

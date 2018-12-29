@@ -1,5 +1,6 @@
 OBJS=\
 	main.o \
+	romident.o \
 	vfs.o \
 	scraper.o \
 	core.o \
@@ -25,10 +26,14 @@ LDFLAGS= $(LIBS)\
 	$(shell pkg-config -libs jansson)\
 	$(shell pkg-config -libs sqlite3)
 
-all: hjortron-frontend
+all: hjortron-frontend romident
 
 hjortron-frontend: $(OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS)
+
+romident: romident_tool.o romident.o
+	$(CC) -o $@  $^
+
 
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
