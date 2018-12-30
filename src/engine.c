@@ -99,45 +99,66 @@ engine_deinit(engine_t *engine)
 static void
 _engine_transform_keyboard_event_to_gamecontroller(SDL_Event *event)
 {
-    if (event->type != SDL_KEYDOWN)
+    if (event->type == SDL_KEYDOWN)
+    {
+        if (event->key.repeat != 0)
+            return;
+
+        event->type = SDL_CONTROLLERBUTTONDOWN;
+        event->cbutton.state = SDL_PRESSED;
+    }
+    else if (event->type == SDL_KEYUP)
+    {
+        event->type = SDL_CONTROLLERBUTTONUP;
+        event->cbutton.state = SDL_RELEASED;
+    }
+    else
+    {
+        /* not an event to be transformed */
         return;
+    }
 
     switch(event->key.keysym.scancode)
     {
         case SDL_SCANCODE_LEFT:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
+            break;
+
         case SDL_SCANCODE_RIGHT:
-            event->type = SDL_CONTROLLERAXISMOTION;
-            event->caxis.axis = SDL_CONTROLLER_AXIS_LEFTX;
-            event->caxis.value = (event->key.keysym.scancode == SDL_SCANCODE_LEFT) ? -32000 : 32000;
-        break;
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
+            break;
 
         case SDL_SCANCODE_UP:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_DPAD_UP;
+            break;
         case SDL_SCANCODE_DOWN:
-            event->type = SDL_CONTROLLERAXISMOTION;
-            event->caxis.axis = SDL_CONTROLLER_AXIS_LEFTY;
-            event->caxis.value = (event->key.keysym.scancode == SDL_SCANCODE_UP) ? -32000 : 32000;
-        break;
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
+            break;
 
-        case SDL_SCANCODE_X: /* SDL_CONTROLLER_BUTTON_A */
-        case SDL_SCANCODE_D: /* SDL_CONTROLLER_BUTTON_B */
-        case SDL_SCANCODE_A: /* SDL_CONTROLLER_BUTTON_X */
-        case SDL_SCANCODE_W: /* SDL_CONTROLLER_BUTTON_Y */
-        case SDL_SCANCODE_ESCAPE: /* SDL_CONTROLLER_BUTTON_BACK */
-            event->type = SDL_CONTROLLERBUTTONDOWN;
-            event->cbutton.state = SDL_PRESSED;
+        case SDL_SCANCODE_X:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_A;
+            break;
+        case SDL_SCANCODE_D:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_B;
+            break;
+        case SDL_SCANCODE_A:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_X;
+            break;
+        case SDL_SCANCODE_W:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_Y;
+            break;
+        case SDL_SCANCODE_ESCAPE:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_BACK;
+            break;
+        case SDL_SCANCODE_S:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_GUIDE;
+            break;
+        case SDL_SCANCODE_SPACE:
+            event->cbutton.button = SDL_CONTROLLER_BUTTON_START;
+            break;
 
-            if(event->key.keysym.scancode == SDL_SCANCODE_X)
-                event->cbutton.button = SDL_CONTROLLER_BUTTON_A;
-            else if(event->key.keysym.scancode == SDL_SCANCODE_D)
-                event->cbutton.button = SDL_CONTROLLER_BUTTON_B;
-            else if(event->key.keysym.scancode == SDL_SCANCODE_A)
-                event->cbutton.button = SDL_CONTROLLER_BUTTON_X;
-            else if(event->key.keysym.scancode == SDL_SCANCODE_W)
-                event->cbutton.button = SDL_CONTROLLER_BUTTON_Y;
-            else if (event->key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-                event->cbutton.button = SDL_CONTROLLER_BUTTON_BACK;
-
-        break;
+        default:
+            break;
     }
 }
 

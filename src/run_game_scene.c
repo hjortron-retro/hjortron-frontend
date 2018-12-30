@@ -15,6 +15,7 @@ typedef struct {
     snd_pcm_t *pcm;
     int width;
     int height;
+    uint16_t joypad_state;
 } run_game_scene_data_t;
 
 run_game_scene_data_t _run_game_scene_data;
@@ -97,7 +98,14 @@ _run_game_retro_input_poll_callback(void)
 static int16_t
 _run_game_retro_input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-    /* TODO */
+    if (device == RETRO_DEVICE_JOYPAD && port == 0)
+    {
+#if 0
+        fprintf(stderr, "State 0x%x, Port %d, device %d. index %d, id %d\n",
+            (_run_game_scene_data.joypad_state >> id) & 1, port, device, index, id);
+#endif
+        return (_run_game_scene_data.joypad_state >> id) & 1;
+    }
     return 0;
 }
 
@@ -129,6 +137,13 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         {
             const bool *pval = data;
             fprintf(stderr, "  Core can run without game data: %s\n", *pval?"true":"false");
+            return true;
+        } break;
+
+        case RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES:
+        {
+            uint64_t *pval = data;
+            *pval = (1 << RETRO_DEVICE_JOYPAD);
             return true;
         } break;
 
@@ -341,13 +356,115 @@ _run_game_scene_handle_event(struct scene_t *scene, SDL_Event *event)
     run_game_scene_data_t *data = scene->opaque;
     if (event->type == SDL_CONTROLLERAXISMOTION)
     {
+        /* SDL Event into Joystick state */
+        if (event->caxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+        {
+            /* Clear left/right bits */
+            data->joypad_state &= ~((1 << RETRO_DEVICE_ID_JOYPAD_LEFT) || (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT));
+
+            /* Update */
+            if (event->caxis.value > 0)
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+            else if (event->caxis.value < 0)
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_LEFT);
+        }
+        else if (event->caxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
+        {
+            /* Clear uo/down bits */
+            data->joypad_state &= ~((1 << RETRO_DEVICE_ID_JOYPAD_UP) || (1 << RETRO_DEVICE_ID_JOYPAD_DOWN));
+
+            /* Update */
+            if (event->caxis.value > 0)
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+            else if (event->caxis.value < 0)
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+        }
     }
     else if (event->type == SDL_CONTROLLERBUTTONDOWN)
     {
+        /*
+         * Map SDL GameController button down event into retro joystick
+         * states
+         */
+        switch(event->cbutton.button)
+        {
+            case SDL_CONTROLLER_BUTTON_DPAD_UP:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_LEFT);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+                break;
+            case SDL_CONTROLLER_BUTTON_A:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_A);
+                break;
+            case SDL_CONTROLLER_BUTTON_B:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_B);
+                break;
+            case SDL_CONTROLLER_BUTTON_X:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_X);
+                break;
+            case SDL_CONTROLLER_BUTTON_Y:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_Y);
+                break;
+            case SDL_CONTROLLER_BUTTON_GUIDE:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_SELECT);
+                break;
+            case SDL_CONTROLLER_BUTTON_START:
+                data->joypad_state |= (1 << RETRO_DEVICE_ID_JOYPAD_START);
+                break;
+        }
+
+        /* Handle special case for in game menu access */
         if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
         {
             snd_pcm_drain(data->pcm);
             engine_push_scene(scene->engine, &game_menu_scene, &data->rom_entry);
+        }
+    }
+    else if (event->type == SDL_CONTROLLERBUTTONUP)
+    {
+        /*
+         * Map SDL GameController button up event into retro joystick
+         * states
+         */
+        switch(event->cbutton.button)
+        {
+            case SDL_CONTROLLER_BUTTON_DPAD_UP:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_UP);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_LEFT);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+                break;
+            case SDL_CONTROLLER_BUTTON_A:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_A);
+                break;
+            case SDL_CONTROLLER_BUTTON_B:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_B);
+                break;
+            case SDL_CONTROLLER_BUTTON_X:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_X);
+                break;
+            case SDL_CONTROLLER_BUTTON_Y:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_Y);
+                break;
+            case SDL_CONTROLLER_BUTTON_GUIDE:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_SELECT);
+                break;
+            case SDL_CONTROLLER_BUTTON_START:
+                data->joypad_state &= ~(1 << RETRO_DEVICE_ID_JOYPAD_START);
+                break;
         }
     }
 }

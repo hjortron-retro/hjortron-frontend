@@ -127,38 +127,37 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 {
     main_scene_data_t *data = scene->opaque;
 
-    if (event->type == SDL_CONTROLLERAXISMOTION)
+    if (event->type == SDL_CONTROLLERBUTTONDOWN)
     {
-        if (event->caxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+        switch (event->cbutton.button)
         {
-            if (event->caxis.value > 0)
-                data->index++;
-            else
+            case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 data->index--;
+                if (data->index < 0)
+                {
+                    data->offset--;
+                    data->index = 0;
+                    _main_scene_update_rom_entries(scene);
+                }
+                break;
 
-            if (data->index < 0)
-            {
-                data->offset--;
-                data->index = 0;
-                _main_scene_update_rom_entries(scene);
-            }
-            else if (data->index >= ROM_ENTRIES)
-            {
-                data->offset++;
-                data->index = ROM_ENTRIES - 1;
-                _main_scene_update_rom_entries(scene);
-            }
-        }
-    }
-    else if (event->type == SDL_CONTROLLERBUTTONDOWN)
-    {
-        if (event->cbutton.button == SDL_CONTROLLER_BUTTON_A)
-        {
-            /* Do menu item action */
-            if (engine_push_scene(scene->engine, &run_game_scene, &data->entries[data->index]) != 0)
-            {
-                fprintf(stderr, "Failed to run game...\n");
-            }
+            case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                data->index++;
+                if (data->index >= ROM_ENTRIES)
+                {
+                    data->offset++;
+                    data->index = ROM_ENTRIES - 1;
+                    _main_scene_update_rom_entries(scene);
+                }
+                break;
+
+            case SDL_CONTROLLER_BUTTON_A:
+                if (engine_push_scene(scene->engine, &run_game_scene, &data->entries[data->index]) != 0)
+                {
+                    fprintf(stderr, "Failed to run game...\n");
+                }
+                break;
+
         }
     }
 }

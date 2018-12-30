@@ -144,21 +144,20 @@ _game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 {
     game_menu_scene_data_t *data = scene->opaque;
 
-    if (event->type == SDL_CONTROLLERAXISMOTION)
+    if (event->type == SDL_CONTROLLERBUTTONDOWN)
     {
-        if (event->caxis.axis == SDL_CONTROLLER_AXIS_LEFTX)
+        switch(event->cbutton.button)
         {
-            if (event->caxis.value > 0)
-                data->index++;
-            else
+            case SDL_CONTROLLER_BUTTON_A:
+                _game_menu_item_handler(&data->menu[data->index], scene);
+                break;
+
+            case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 data->index--;
-        }
-    }
-    else if (event->type == SDL_CONTROLLERBUTTONDOWN)
-    {
-        if (event->cbutton.button == SDL_CONTROLLER_BUTTON_A)
-        {
-            _game_menu_item_handler(&data->menu[data->index], scene);
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                data->index++;
+                break;
         }
     }
 }
