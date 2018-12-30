@@ -155,6 +155,40 @@ _ident_sega_mega_drive_rom(int fd, romident_rom_data_t *result)
     return 0;
 }
 
+/*
+ * Identify GAMEBOY ROM
+ */
+static int
+_ident_game_boy_rom(int fd, romident_rom_data_t *result)
+{
+    uint8_t magic[] = {0x38,0x0a,0xac,0x72,0x21,0xd4,0xf8,0x07};
+
+    struct gameboy_header {
+        uint8_t magic[8];
+        uint8_t title[12];
+        uint8_t designation[4];
+        uint8_t reserved[11];
+        uint16_t checksum;
+    } hdr;
+
+    if (lseek(fd, 0xa0 - 8, SEEK_SET) == -1)
+        return 1;
+    if (read(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+        return 1;
+
+    /* Verify bitmap nintento logo */
+    if (memcmp(hdr.magic, magic, sizeof(magic)) != 0)
+        return 1;
+
+    /* build result */
+    memset(result, 0, sizeof(romident_rom_data_t));
+    _ident_string_trim(hdr.title, sizeof(hdr.title));
+    strcat((char*)result->name, (char*)hdr.title);
+    result->crc32 = hdr.checksum;
+    result->system = ROMIDENT_GAME_BOY;
+    return 0;
+}
+
 static int
 _romident_identify(romident_t *ident, int fd, romident_rom_data_t *result)
 {
@@ -165,6 +199,10 @@ _romident_identify(romident_t *ident, int fd, romident_rom_data_t *result)
         return 0;
 
     res = _ident_sega_mega_drive_rom(fd, result);
+    if (res == 0)
+        return 0;
+
+    res = _ident_game_boy_rom(fd, result);
     if (res == 0)
         return 0;
 
