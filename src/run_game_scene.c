@@ -23,12 +23,40 @@ run_game_scene_data_t _run_game_scene_data;
 static void
 _run_game_retro_log_printf(enum retro_log_level level, const char *fmt, ...)
 {
-    char buf[1024];
+    char buf[1024] = {0};
+    static char last[1024] = {0};
+    static enum retro_log_level last_level;
+    static uint8_t counter = 0;
     va_list args;
-    va_start (args, fmt);
-    snprintf(buf, sizeof(buf), "RETRO [%d]: %s", level, fmt);
-    vfprintf(stderr, buf, args);
+
+    /* TODO: do we want to have log level to be configurable ? */
+    if (level == 0)
+        return;
+
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
+
+    if (strcmp(buf, last) == 0 && last_level == level)
+    {
+        counter++;
+    }
+    else
+    {
+        if (counter != 0)
+            fprintf(stderr, "Last message repeated %d times\n", counter);
+        counter = 0;
+    }
+
+    if (counter == 0)
+    {
+        fprintf(stderr, "RETRO[%d]: %s", level, buf);
+
+        snprintf(last, sizeof(last), "%s", buf);
+        last_level = level;
+        counter = 0;
+    }
+
 }
 
 static void
