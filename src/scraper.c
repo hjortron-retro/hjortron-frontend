@@ -80,7 +80,7 @@ _scraper_db_get_list(scraper_t *scraper, uint32_t offset, uint32_t limit,
     sqlite3_stmt *get_list_stmt;
     char query[512] = {};
 
-    strcat (query, "SELECT path,name,core FROM roms ORDER BY path LIMIT ? OFFSET ?");
+    strcat (query, "SELECT path,name,core FROM roms ORDER BY name LIMIT ? OFFSET ?");
 
     if (sqlite3_prepare_v2(scraper->db, query, sizeof(query), &get_list_stmt, NULL) != SQLITE_OK)
     {
