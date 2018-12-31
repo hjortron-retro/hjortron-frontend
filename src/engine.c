@@ -202,6 +202,8 @@ engine_push_scene(engine_t *engine, scene_t *scene, void *opaque)
     if (scene->mount(scene, opaque) != 0)
         return 1;
 
+    scene->enter(scene);
+
     engine->stack_idx++;
     engine->stack[engine->stack_idx] = scene;
 
@@ -211,14 +213,21 @@ engine_push_scene(engine_t *engine, scene_t *scene, void *opaque)
 int
 engine_pop_scene(engine_t *engine)
 {
-    fprintf(stderr, "Pop scene from stack of %d items\n", engine->stack_idx);
+    scene_t *scene;
+
     /* prevent pop of first item on stack, the main menu scene */
     if (engine->stack_idx == 0)
         return 1;
 
+    scene = engine->stack[engine->stack_idx];
     engine->stack_idx--;
 
-    engine->stack[engine->stack_idx + 1]->unmount(engine->stack[engine->stack_idx + 1]);
+    scene->leave(scene);
+    scene->unmount(scene);
+
+    /* enter new scene */
+    scene = engine->stack[engine->stack_idx];
+    scene->enter(scene);
 
     return 0;
 }

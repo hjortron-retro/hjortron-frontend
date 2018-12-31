@@ -163,6 +163,16 @@ _in_game_menu_scene_unmount(struct scene_t *scene)
 }
 
 static void
+_in_game_menu_scene_enter(struct scene_t *scene)
+{
+}
+
+static void
+_in_game_menu_scene_leave(struct scene_t *scene)
+{
+}
+
+static void
 _in_game_menu_scene_render_front(struct scene_t *scene)
 {
     int w,h;
@@ -256,6 +266,8 @@ in_game_menu_scene_data_t _in_game_menu_scene_data = {
 scene_t in_game_menu_scene = {
     _in_game_menu_scene_mount,
     _in_game_menu_scene_unmount,
+    _in_game_menu_scene_enter,
+    _in_game_menu_scene_leave,
     _in_game_menu_scene_render_back,
     _in_game_menu_scene_render_front,
     _in_game_menu_scene_render_overlay,

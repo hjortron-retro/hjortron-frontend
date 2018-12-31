@@ -351,6 +351,16 @@ _run_game_scene_unmount(struct scene_t *scene)
     data->core->api.retro_deinit();
 }
 
+static void
+_run_game_scene_enter(struct scene_t *scene)
+{
+}
+
+static void
+_run_game_scene_leave(struct scene_t *scene)
+{
+}
+
 
 static void
 _run_game_scene_render_front(struct scene_t *scene)
@@ -500,6 +510,8 @@ _run_game_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 scene_t run_game_scene = {
     _run_game_scene_mount,
     _run_game_scene_unmount,
+    _run_game_scene_enter,
+    _run_game_scene_leave,
     _run_game_scene_render_back,
     _run_game_scene_render_front,
     _run_game_scene_render_overlay,

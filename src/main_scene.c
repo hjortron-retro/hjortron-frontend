@@ -124,6 +124,16 @@ _main_scene_unmount(struct scene_t *scene)
 }
 
 static void
+_main_scene_enter(struct scene_t *scene)
+{
+}
+
+static void
+_main_scene_leave(struct scene_t *scene)
+{
+}
+
+static void
 _main_scene_render_front(struct scene_t *scene)
 {
     int i;
@@ -303,6 +313,8 @@ main_scene_data_t _main_scene_data = {
 scene_t main_scene = {
     _main_scene_mount,
     _main_scene_unmount,
+    _main_scene_enter,
+    _main_scene_leave,
     _main_scene_render_back,
     _main_scene_render_front,
     _main_scene_render_overlay,

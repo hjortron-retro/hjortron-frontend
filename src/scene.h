@@ -6,6 +6,8 @@
 typedef struct scene_t {
     int (*mount)(struct scene_t *scene, void *opaque);
     void (*unmount)(struct scene_t *scene);
+    void (*enter)(struct scene_t *scene);
+    void (*leave)(struct scene_t *scene);
     void (*render_back)(struct scene_t *scene);
     void (*render_front)(struct scene_t *scene);
     void (*render_overlay)(struct scene_t *scene);
