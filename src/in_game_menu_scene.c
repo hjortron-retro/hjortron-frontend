@@ -1,7 +1,12 @@
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <SDL_ttf.h>
+
 #include "scene.h"
 #include "engine.h"
 #include "draw.h"
-#include <SDL_ttf.h>
 
 #define MENU_ITEMS 7
 
@@ -19,9 +24,88 @@ enum {
     GAME_SAVE,
 };
 
+
+typedef struct {
+    core_t *core;
+    int32_t index;
+    menu_item_t *menu;
+    uint8_t menu_item_cnt;
+} in_game_menu_scene_data_t;
+
+static int
+_in_game_menu_save_game(struct scene_t *scene, const char *filename)
+{
+    int fd = -1;
+    uint8_t *state;
+    size_t size;
+    in_game_menu_scene_data_t *data = scene->opaque;
+
+    size = data->core->api.retro_serialize_size();
+
+    state = malloc(size);
+    if (!data->core->api.retro_serialize(state, size))
+        goto fail;
+
+
+    /* store serialize data to disk */
+    fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    if (fd < 0)
+        goto fail;
+
+    if (write(fd, state, size) != size)
+        goto fail;
+
+    close(fd);
+    free(state);
+    return 0;
+
+fail:
+    if (fd > 0)
+        close(fd);
+
+    free(state);
+    return 1;
+}
+
+static int
+_in_game_menu_load_game(struct scene_t *scene, const char *filename)
+{
+    int fd;
+    uint8_t *state;
+    off_t size;
+    in_game_menu_scene_data_t *data = scene->opaque;
+
+    data->core->api.retro_reset();
+
+    fd = open(filename, O_RDONLY);
+    if (fd < 0)
+        goto fail;
+
+    size = lseek(fd, 0, SEEK_END);
+    state = malloc(size);
+
+    lseek(fd, 0, SEEK_SET);
+    if (read(fd, state, size) != size)
+        goto fail;
+
+    if (!data->core->api.retro_unserialize(state, size))
+        goto fail;
+
+    close(fd);
+    free(state);
+    return 0;
+fail:
+    if (fd > 0)
+        close(fd);
+    free(state);
+    return 1;
+}
+
 static int
 _in_game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
 {
+    in_game_menu_scene_data_t *data = scene->opaque;
+
     switch(item->id)
     {
         case GAME_BACK: /* Back to game */
@@ -29,12 +113,20 @@ _in_game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
             break;
 
         case GAME_RESTART: /* Restart game */
+            data->core->api.retro_reset();
+            engine_pop_scene(scene->engine);
             break;
 
         case GAME_SAVE: /* Save game */
+            if (_in_game_menu_save_game(scene, "/tmp/state.rom") != 0)
+                fprintf(stderr, "%s(), failed to save game\n", __func__);
+            engine_pop_scene(scene->engine);
             break;
 
         case GAME_LOAD: /* Load game */
+            if (_in_game_menu_load_game(scene, "/tmp/state.rom") != 0)
+                fprintf(stderr, "%s(), failed to load game\n", __func__);
+            engine_pop_scene(scene->engine);
             break;
 
         case GAME_QUIT: /* Quit game */
@@ -56,19 +148,11 @@ static menu_item_t _in_game_menu[] = {
     {GAME_SAVE, "Save game", _in_game_menu_item_handler},
 };
 
-typedef struct {
-    scraper_rom_entry_t *rom_entry;
-    int32_t index;
-    menu_item_t *menu;
-    uint8_t menu_item_cnt;
-} in_game_menu_scene_data_t;
-
-
 static int
 _in_game_menu_scene_mount(struct scene_t *scene, void *opaque)
 {
     in_game_menu_scene_data_t *data = scene->opaque;
-    data->rom_entry = opaque;
+    data->core = opaque;
     data->index = 0;
     return 0;
 }

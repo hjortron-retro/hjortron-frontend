@@ -34,9 +34,14 @@ core_api_init(core_api_t *api, const char *module)
 
     api->retro_init = dlsym(api->module, "retro_init");
     api->retro_deinit = dlsym(api->module, "retro_deinit");
+
     api->retro_run = dlsym(api->module, "retro_run");
     api->retro_load_game = dlsym(api->module, "retro_load_game");
     api->retro_unload_game = dlsym(api->module, "retro_unload_game");
+    api->retro_reset = dlsym(api->module, "retro_reset");
+    api->retro_serialize_size = dlsym(api->module, "retro_serialize_size");
+    api->retro_serialize = dlsym(api->module, "retro_serialize");
+    api->retro_unserialize = dlsym(api->module, "retro_unserialize");
 
     if (api->retro_get_system_info == NULL)
         goto failure;

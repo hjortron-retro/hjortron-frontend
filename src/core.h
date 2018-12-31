@@ -20,9 +20,14 @@ typedef struct core_api_t {
 
     void (*retro_init)(void);
     void (*retro_deinit)(void);
+
     void (*retro_run)(void);
     bool (*retro_load_game)(const struct retro_game_info *game);
     void (*retro_unload_game)(void);
+    void (*retro_reset)(void);
+    size_t (*retro_serialize_size)(void);
+    bool (*retro_serialize)(void *data, size_t size);
+    bool (*retro_unserialize)(const void *data, size_t size);
 } core_api_t;
 
 typedef struct core_t {
