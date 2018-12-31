@@ -109,11 +109,16 @@ _run_game_retro_audio_sample_callback(int16_t left, int16_t right)
 static size_t
 _run_game_retro_audio_sample_batch_callback(const int16_t *data, size_t frames)
 {
-    int written = snd_pcm_writei(_run_game_scene_data.pcm, data, frames);
-    if (written == 0) {
-        snd_pcm_recover(_run_game_scene_data.pcm, written, 0);
-		return 0;
+    int res;
+    while(1)
+    {
+        res = snd_pcm_writei(_run_game_scene_data.pcm, data, frames);
+        if (res > 0)
+            break;
+
+        snd_pcm_recover(_run_game_scene_data.pcm, res, 0);
     }
+
     return frames;
 }
 
@@ -354,11 +359,16 @@ _run_game_scene_unmount(struct scene_t *scene)
 static void
 _run_game_scene_enter(struct scene_t *scene)
 {
+    run_game_scene_data_t *data = scene->opaque;
+    snd_pcm_pause(data->pcm, 0);
 }
 
 static void
 _run_game_scene_leave(struct scene_t *scene)
 {
+    run_game_scene_data_t *data = scene->opaque;
+    snd_pcm_drain(data->pcm);
+    snd_pcm_pause(data->pcm, 1);
 }
 
 
@@ -461,7 +471,6 @@ _run_game_scene_handle_event(struct scene_t *scene, SDL_Event *event)
         /* Handle special case for in game menu access */
         if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
         {
-            snd_pcm_drain(data->pcm);
             engine_push_scene(scene->engine, &in_game_menu_scene, data->core);
         }
     }
