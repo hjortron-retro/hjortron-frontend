@@ -14,7 +14,7 @@ OBJS=\
 
 CC=gcc
 LIBS=-ldl
-CFLAGS=-g -Wall -I.\
+CFLAGS=-g -Werror -Wall -I.\
 	$(shell pkg-config -cflags alsa)\
 	$(shell pkg-config -cflags sdl2)\
 	$(shell pkg-config -cflags jansson)\

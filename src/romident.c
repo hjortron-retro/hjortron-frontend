@@ -115,7 +115,7 @@ _ident_sega_mega_drive_rom(int fd, romident_rom_data_t *result)
             return 1;
 
         uint8_t *phdr, *podd, *peven;
-        phdr = &hdr;
+        phdr = (uint8_t*)&hdr;
         peven = buf;
         podd = buf + 8192;
 
