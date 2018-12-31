@@ -12,8 +12,11 @@ typedef enum draw_text_align_t
 } draw_text_align_t;
 
 void draw_text(SDL_Renderer *renderer,
-                TTF_Font *font, SDL_Color color,
+                TTF_Font *font, int style, SDL_Color color,
                 draw_text_align_t align,
                 const char *text, SDL_Rect *dest);
+
+SDL_Surface *render_text(TTF_Font *font, int style, SDL_Color color, const char *text);
+
 
 #endif /* draw */

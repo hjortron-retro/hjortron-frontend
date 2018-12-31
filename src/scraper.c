@@ -254,3 +254,33 @@ scraper_get_list(scraper_t *scraper, uint32_t index, uint32_t limit,
 {
     return _scraper_db_get_list(scraper, index, limit, result, size);
 }
+
+int32_t
+scraper_get_offset_to_char(scraper_t *scraper, char ch)
+{
+    int rc;
+    int32_t offset;
+    char chstr[2] = {0};
+    char query[512] = {0};
+    sqlite3_stmt *get_offset_to_char;
+
+    strcat(query, "SELECT count(name) FROM (SELECT name FROM roms ORDER BY name)" \
+                  "WHERE substr(lower(name),1,1) < ?");
+
+    if ((rc = sqlite3_prepare_v2(scraper->db, query, sizeof(query), &get_offset_to_char, NULL)) != SQLITE_OK)
+    {
+        return 0;
+    }
+
+    chstr[0] = ch;
+    chstr[1] = '\0';
+    sqlite3_bind_text(get_offset_to_char, 1, chstr, -1, SQLITE_STATIC);
+
+    offset = 0;
+    if (sqlite3_step(get_offset_to_char) == SQLITE_ROW)
+        offset = sqlite3_column_int64(get_offset_to_char,0);
+
+    sqlite3_finalize(get_offset_to_char);
+    return offset;
+}
+

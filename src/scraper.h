@@ -25,4 +25,6 @@ int scraper_scan_directory(scraper_t *scraper, core_collection_t *core, const ch
 int scraper_get_list(scraper_t *scraper, uint32_t index, uint32_t limit,
                     scraper_rom_entry_t *result, size_t *size);
 
+int32_t scraper_get_offset_to_char(scraper_t *scraper, char ch);
+
 #endif /* _scraper_h */

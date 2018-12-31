@@ -35,6 +35,7 @@ _engine_scan_roms(engine_t *engine)
 int
 engine_init(engine_t *engine)
 {
+    int w, h;
     int flags;
     memset(engine, 0, sizeof(engine_t));
 
@@ -57,26 +58,28 @@ engine_init(engine_t *engine)
     run_game_scene.engine = engine;
     game_menu_scene.engine = engine;
 
+    /* initialize SDL */
+    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMECONTROLLER);
+
+    /* video */
+    flags = 0;
+    if (strcmp("true", config_get(&engine->config, "/hjortron/video/fullscreen", "false")) == 0)
+        flags |=  SDL_WINDOW_FULLSCREEN_DESKTOP;
+    if (SDL_CreateWindowAndRenderer(320, 240, flags,
+				    &engine->window, &engine->renderer) != 0)
+      return 1;
+
+    /* aux */
+    TTF_Init();
+    SDL_GetRendererOutputSize(engine->renderer, &w, &h);
+    engine->font = TTF_OpenFont("/tmp/font.ttf", w * 0.06);
+
     /* mount main scene */
     if (main_scene.mount(&main_scene, NULL) != 0)
         return 1;
 
     engine->stack[0] = &main_scene;
     engine->stack_idx = 0;
-
-
-    /* initialize SDL */
-    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMECONTROLLER);
-
-    /* aux */
-    TTF_Init();
-    engine->font = TTF_OpenFont("/tmp/font.ttf", 18);
-
-    /* video */
-    flags = 0 /*|  SDL_WINDOW_FULLSCREEN_DESKTOP */;
-    if (SDL_CreateWindowAndRenderer(320, 240, flags,
-				    &engine->window, &engine->renderer) != 0)
-      return 1;
 
     return 0;
 }

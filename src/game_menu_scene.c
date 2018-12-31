@@ -99,7 +99,7 @@ _game_menu_scene_render_front(struct scene_t *scene)
 
     for (int i=s; i < e; i++)
     {
-        draw_text(scene->engine->renderer, scene->engine->font,
+        draw_text(scene->engine->renderer, scene->engine->font, TTF_STYLE_NORMAL,
             black, ALIGN_CENTER, data->menu[i].label, &d);
 
         d.y += d.h;

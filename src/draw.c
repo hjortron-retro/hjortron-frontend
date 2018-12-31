@@ -1,8 +1,23 @@
 #include "draw.h"
 #include <assert.h>
 
+SDL_Surface *
+render_text(TTF_Font *font, int style, SDL_Color color, const char *text)
+{
+    SDL_Surface *surface;
+    TTF_SetFontStyle(font, style);
+    /* TODO: Lookup surface in cache, render new if not found */
+    surface = TTF_RenderUTF8_Blended(font, text, color);
+    if (!surface)
+    {
+        fprintf(stderr, "%s(), %s",__func__, TTF_GetError());
+    }
+    return surface;
+}
+
+
 void
-draw_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color,
+draw_text(SDL_Renderer *renderer, TTF_Font *font, int style, SDL_Color color,
                     draw_text_align_t align, const char *text, SDL_Rect *dest)
 {
     assert(font != NULL);
@@ -10,7 +25,8 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color,
     SDL_Rect d;
     SDL_Surface *surface;
     SDL_Texture *texture;
-    surface = TTF_RenderUTF8_Blended(font, text, color);
+
+    surface = render_text(font, style, color, text);
 
     if (dest != NULL)
     {

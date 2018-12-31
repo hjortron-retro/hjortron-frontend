@@ -1,17 +1,34 @@
+#include <time.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
+
 #include "scene.h"
 #include "engine.h"
 #include "draw.h"
-#include <SDL_ttf.h>
 
-#define ROM_ENTRIES 7
+
+static int MENU_BAR_ITEM_SIZE = 0;
+#define ROM_ENTRIES 8
 
 extern scene_t run_game_scene;
+static char *menu_bar_items = "abcdefghijklmnopqrstuvwxyz";
+
 
 typedef struct {
-    scraper_rom_entry_t entries[ROM_ENTRIES];
-    size_t entry_cnt;
-    int32_t offset;
-    int32_t index;
+    int menu;
+
+    struct {
+        scraper_rom_entry_t entries[ROM_ENTRIES];
+        size_t entry_cnt;
+        int32_t offset;
+        int32_t index;
+    } menu_roms;
+
+    struct {
+        SDL_Texture *texture;
+        int32_t index;
+    } menu_bar;
+
 } main_scene_data_t;
 
 static int
@@ -23,28 +40,76 @@ _main_scene_update_rom_entries(scene_t *scene)
     /* free up entries */
     for (i = 0; i < ROM_ENTRIES; i++)
     {
-        free((void *)data->entries[i].name);
-        free((void *)data->entries[i].path);
-        free((void *)data->entries[i].core);
+        free((void *)data->menu_roms.entries[i].name);
+        free((void *)data->menu_roms.entries[i].path);
+        free((void *)data->menu_roms.entries[i].core);
     }
 
-    memset(&data->entries, 0, sizeof(data->entries));
-    data->entry_cnt = ROM_ENTRIES;
+    memset(&data->menu_roms.entries, 0, sizeof(data->menu_roms.entries));
+    data->menu_roms.entry_cnt = ROM_ENTRIES;
 
     /* get new entries */
-    if (scraper_get_list(&scene->engine->scraper, data->offset, ROM_ENTRIES, data->entries, &data->entry_cnt) != 0)
-        data->entry_cnt = 0;
+    if (scraper_get_list(&scene->engine->scraper, data->menu_roms.offset, ROM_ENTRIES,
+        data->menu_roms.entries, &data->menu_roms.entry_cnt) != 0)
+        data->menu_roms.entry_cnt = 0;
 
     return 0;
+}
+
+static void
+_main_scene_side_menu_bar_texture(struct scene_t *scene)
+{
+    char c[2] = {0}, *pitem;
+    SDL_Rect dest;
+    SDL_Surface *ch, *menu_bar;
+    SDL_Color black = {220, 220, 220, 0x2f};
+    main_scene_data_t *data = scene->opaque;
+
+    menu_bar = SDL_CreateRGBSurfaceWithFormat(0, MENU_BAR_ITEM_SIZE,
+                                              MENU_BAR_ITEM_SIZE * (27 + 1),
+                                              32, SDL_PIXELFORMAT_RGBA32);
+
+    dest.x = dest.y = 0;
+    pitem = menu_bar_items;
+    while(*pitem != '\0')
+    {
+        *c = *pitem;
+        ch = render_text(scene->engine->font, TTF_STYLE_BOLD, black, c);
+        SDL_SetSurfaceBlendMode(ch, SDL_BLENDMODE_NONE);
+        if (ch)
+        {
+            dest.x = (menu_bar->w / 2) - (ch->w / 2);
+            dest.w = ch->w;
+            dest.h = ch->h;
+
+            SDL_BlitSurface(ch, NULL, menu_bar, &dest);
+            SDL_FreeSurface(ch);
+        }
+
+        dest.y += MENU_BAR_ITEM_SIZE;
+        pitem++;
+    }
+
+    data->menu_bar.texture = SDL_CreateTextureFromSurface(scene->engine->renderer, menu_bar);
+    SDL_SetTextureBlendMode(data->menu_bar.texture, SDL_BLENDMODE_BLEND);
+
+    SDL_FreeSurface(menu_bar);
 }
 
 static int
 _main_scene_mount(struct scene_t *scene, void *opaque)
 {
+    int w,h;
     main_scene_data_t *data = scene->opaque;
 
+    SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
+    MENU_BAR_ITEM_SIZE = w*0.075;
+
+    /* create side menu bar texture */
+    _main_scene_side_menu_bar_texture(scene);
+
     /* fetch first set of available roms */
-    data->index = data->offset = 0;
+    data->menu_roms.index = data->menu_roms.offset = 0;
     _main_scene_update_rom_entries(scene);
 
     return 0;
@@ -53,6 +118,9 @@ _main_scene_mount(struct scene_t *scene, void *opaque)
 static void
 _main_scene_unmount(struct scene_t *scene)
 {
+    main_scene_data_t *data = scene->opaque;
+    if (data->menu_bar.texture)
+        SDL_DestroyTexture(data->menu_bar.texture);
 }
 
 static void
@@ -67,13 +135,13 @@ _main_scene_render_front(struct scene_t *scene)
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
 
     d.x = d.y = 0;
-    d.x = 32 + 4;
+    d.x = MENU_BAR_ITEM_SIZE + 4;
     d.w = w;
     d.h = h / ROM_ENTRIES;
-    for (i = 0; i < data->entry_cnt; i++)
+    for (i = 0; i < data->menu_roms.entry_cnt; i++)
     {
         draw_text(scene->engine->renderer, scene->engine->font,
-            black, ALIGN_LEFT, data->entries[i].name, &d);
+                  TTF_STYLE_NORMAL, black, ALIGN_LEFT, data->menu_roms.entries[i].name, &d);
 
         d.y += d.h;
     }
@@ -83,32 +151,53 @@ _main_scene_render_front(struct scene_t *scene)
 static void
 _main_scene_render_back(struct scene_t *scene)
 {
-    int w, h;
+    uint32_t fmt;
+    int w, h, sw, sh, access;
     SDL_Rect center;
     main_scene_data_t *data = scene->opaque;
 
+    /*clear screen */
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
     SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
     SDL_RenderClear(scene->engine->renderer);
 
     /* draw side menu bar */
     center.x = center.y = 0;
-    center.w = 32;
+    center.w = MENU_BAR_ITEM_SIZE;
     center.h = h;
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
+    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0xa0);
     SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(scene->engine->renderer, &center);
-
 
     /* draw item cursor line highlight */
-    center.x = 32;
-    center.w = w;
-    center.h = h/ROM_ENTRIES;
-    center.y = data->index * center.h;
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
-    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+    if (data->menu == 0)
+    {
+        center.x = MENU_BAR_ITEM_SIZE;
+        center.w = w;
+        center.h = h/ROM_ENTRIES;
+        center.y = data->menu_roms.index * center.h;
+        SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
+        SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+        SDL_RenderFillRect(scene->engine->renderer, &center);
+    }
+    else
+    {
+        center.x = center.y = 0;
+        center.w = center.h = MENU_BAR_ITEM_SIZE;
+        center.y = (h/2) - (MENU_BAR_ITEM_SIZE/2);
+        SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x7f);
+        SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+        SDL_RenderFillRect(scene->engine->renderer, &center);
+    }
 
-    SDL_RenderFillRect(scene->engine->renderer, &center);
+    /* render menu_bar */
+    SDL_QueryTexture(data->menu_bar.texture, &fmt, &access, &sw, &sh);
+    center.x = center.y = 0;
+    center.y = (h/2) - (MENU_BAR_ITEM_SIZE/2);
+    center.w = sw;
+    center.h = sh;
+    center.y -= (data->menu_bar.index * MENU_BAR_ITEM_SIZE);
+    SDL_RenderCopy(scene->engine->renderer, data->menu_bar.texture, NULL, &center);
 }
 
 static void
@@ -132,29 +221,74 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
         switch (event->cbutton.button)
         {
             case SDL_CONTROLLER_BUTTON_DPAD_UP:
-                data->index--;
-                if (data->index < 0)
+                if (data->menu == 0)
                 {
-                    data->offset--;
-                    data->index = 0;
-                    _main_scene_update_rom_entries(scene);
+                    data->menu_roms.index--;
+                    if (data->menu_roms.index < 0)
+                    {
+                        data->menu_roms.offset--;
+                        data->menu_roms.index = 0;
+                        _main_scene_update_rom_entries(scene);
+                    }
+                }
+                else
+                {
+                    if (data->menu_bar.index > 0)
+                        data->menu_bar.index--;
                 }
                 break;
 
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-                data->index++;
-                if (data->index >= ROM_ENTRIES)
+                if (data->menu == 0)
                 {
-                    data->offset++;
-                    data->index = ROM_ENTRIES - 1;
-                    _main_scene_update_rom_entries(scene);
+                    data->menu_roms.index++;
+                    if (data->menu_roms.index >= ROM_ENTRIES)
+                    {
+                        data->menu_roms.offset++;
+                        data->menu_roms.index = ROM_ENTRIES - 1;
+                        _main_scene_update_rom_entries(scene);
+                    }
+                }
+                else
+                {
+                    if (data->menu_bar.index < 25)
+                        data->menu_bar.index++;
                 }
                 break;
 
+            case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                data->menu = 1; /* menu bar */
+                break;
+            case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                data->menu = 0; /* game list */
+                break;
+
             case SDL_CONTROLLER_BUTTON_A:
-                if (engine_push_scene(scene->engine, &run_game_scene, &data->entries[data->index]) != 0)
+                if (data->menu == 0)
                 {
-                    fprintf(stderr, "Failed to run game...\n");
+                    /* start selected game */
+                    if (engine_push_scene(scene->engine, &run_game_scene,
+                                    &data->menu_roms.entries[data->menu_roms.index]) != 0)
+                    {
+                        fprintf(stderr, "Failed to run game...\n");
+                    }
+                }
+                else
+                {
+                    /* jump to char */
+                    data->menu_roms.offset =
+                        scraper_get_offset_to_char(&scene->engine->scraper, menu_bar_items[data->menu_bar.index]);
+                    _main_scene_update_rom_entries(scene);
+                    data->menu_roms.index = 0;
+                }
+                break;
+
+            case SDL_CONTROLLER_BUTTON_BACK:
+                {
+                    SDL_QuitEvent e;
+                    e.type = SDL_QUIT;
+                    e.timestamp = time(NULL);
+                    SDL_PushEvent((SDL_Event*)&e);
                 }
                 break;
 
