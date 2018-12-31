@@ -20,7 +20,7 @@ enum {
 };
 
 static int
-_game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
+_in_game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
 {
     switch(item->id)
     {
@@ -48,12 +48,12 @@ _game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
     return 0;
 }
 
-static menu_item_t _game_menu[] = {
-    {GAME_BACK, "Back to game", _game_menu_item_handler},
-    {GAME_QUIT, "Quit game", _game_menu_item_handler},
-    {GAME_RESTART, "Restart game", _game_menu_item_handler},
-    {GAME_LOAD, "Load game", _game_menu_item_handler},
-    {GAME_SAVE, "Save game", _game_menu_item_handler},
+static menu_item_t _in_game_menu[] = {
+    {GAME_BACK, "Back to game", _in_game_menu_item_handler},
+    {GAME_QUIT, "Quit game", _in_game_menu_item_handler},
+    {GAME_RESTART, "Restart game", _in_game_menu_item_handler},
+    {GAME_LOAD, "Load game", _in_game_menu_item_handler},
+    {GAME_SAVE, "Save game", _in_game_menu_item_handler},
 };
 
 typedef struct {
@@ -61,31 +61,31 @@ typedef struct {
     int32_t index;
     menu_item_t *menu;
     uint8_t menu_item_cnt;
-} game_menu_scene_data_t;
+} in_game_menu_scene_data_t;
 
 
 static int
-_game_menu_scene_mount(struct scene_t *scene, void *opaque)
+_in_game_menu_scene_mount(struct scene_t *scene, void *opaque)
 {
-    game_menu_scene_data_t *data = scene->opaque;
+    in_game_menu_scene_data_t *data = scene->opaque;
     data->rom_entry = opaque;
     data->index = 0;
     return 0;
 }
 
 static void
-_game_menu_scene_unmount(struct scene_t *scene)
+_in_game_menu_scene_unmount(struct scene_t *scene)
 {
 }
 
 static void
-_game_menu_scene_render_front(struct scene_t *scene)
+_in_game_menu_scene_render_front(struct scene_t *scene)
 {
     int w,h;
     int s,e;
     SDL_Rect d;
     SDL_Color black = {0, 0, 0};
-    game_menu_scene_data_t *data = scene->opaque;
+    in_game_menu_scene_data_t *data = scene->opaque;
 
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
 
@@ -107,11 +107,11 @@ _game_menu_scene_render_front(struct scene_t *scene)
 }
 
 static void
-_game_menu_scene_render_back(struct scene_t *scene)
+_in_game_menu_scene_render_back(struct scene_t *scene)
 {
     int w, h;
     SDL_Rect center;
-    game_menu_scene_data_t *data = scene->opaque;
+    in_game_menu_scene_data_t *data = scene->opaque;
 
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
     SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
@@ -129,27 +129,27 @@ _game_menu_scene_render_back(struct scene_t *scene)
 }
 
 static void
-_game_menu_scene_render_overlay(struct scene_t *scene)
+_in_game_menu_scene_render_overlay(struct scene_t *scene)
 {
 }
 
 static int
-_game_menu_scene_tick(struct scene_t *scene)
+_in_game_menu_scene_tick(struct scene_t *scene)
 {
     return 1;
 }
 
 static void
-_game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
+_in_game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 {
-    game_menu_scene_data_t *data = scene->opaque;
+    in_game_menu_scene_data_t *data = scene->opaque;
 
     if (event->type == SDL_CONTROLLERBUTTONDOWN)
     {
         switch(event->cbutton.button)
         {
             case SDL_CONTROLLER_BUTTON_A:
-                _game_menu_item_handler(&data->menu[data->index], scene);
+                _in_game_menu_item_handler(&data->menu[data->index], scene);
                 break;
 
             case SDL_CONTROLLER_BUTTON_DPAD_UP:
@@ -162,21 +162,21 @@ _game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
     }
 }
 
-game_menu_scene_data_t _game_menu_scene_data = {
+in_game_menu_scene_data_t _in_game_menu_scene_data = {
     NULL,
     0,
-    _game_menu,
-    sizeof(_game_menu) / sizeof(menu_item_t),
+    _in_game_menu,
+    sizeof(_in_game_menu) / sizeof(menu_item_t),
 };
 
-scene_t game_menu_scene = {
-    _game_menu_scene_mount,
-    _game_menu_scene_unmount,
-    _game_menu_scene_render_back,
-    _game_menu_scene_render_front,
-    _game_menu_scene_render_overlay,
-    _game_menu_scene_tick,
-    _game_menu_scene_handle_event,
+scene_t in_game_menu_scene = {
+    _in_game_menu_scene_mount,
+    _in_game_menu_scene_unmount,
+    _in_game_menu_scene_render_back,
+    _in_game_menu_scene_render_front,
+    _in_game_menu_scene_render_overlay,
+    _in_game_menu_scene_tick,
+    _in_game_menu_scene_handle_event,
     NULL,
-    &_game_menu_scene_data
+    &_in_game_menu_scene_data
 };

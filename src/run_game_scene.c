@@ -5,7 +5,7 @@
 #include <SDL_ttf.h>
 #include <asoundlib.h>
 
-extern scene_t game_menu_scene;
+extern scene_t in_game_menu_scene;
 
 typedef struct {
     engine_t *engine;
@@ -452,7 +452,7 @@ _run_game_scene_handle_event(struct scene_t *scene, SDL_Event *event)
         if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
         {
             snd_pcm_drain(data->pcm);
-            engine_push_scene(scene->engine, &game_menu_scene, &data->rom_entry);
+            engine_push_scene(scene->engine, &in_game_menu_scene, &data->rom_entry);
         }
     }
     else if (event->type == SDL_CONTROLLERBUTTONUP)

@@ -9,7 +9,7 @@ OBJS=\
 	draw.o \
 	config.o \
 	main_scene.o \
-	game_menu_scene.o \
+	in_game_menu_scene.o \
 	run_game_scene.o
 
 CC=gcc

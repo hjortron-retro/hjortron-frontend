@@ -4,7 +4,7 @@
 
 extern scene_t main_scene;
 extern scene_t run_game_scene;
-extern scene_t game_menu_scene;
+extern scene_t in_game_menu_scene;
 
 static void
 _engine_handle_event(engine_t *engine, SDL_Event *event)
@@ -56,7 +56,7 @@ engine_init(engine_t *engine)
     /* initialize scenes */
     main_scene.engine = engine;
     run_game_scene.engine = engine;
-    game_menu_scene.engine = engine;
+    in_game_menu_scene.engine = engine;
 
     /* initialize SDL */
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMECONTROLLER);
