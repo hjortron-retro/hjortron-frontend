@@ -31,6 +31,33 @@ _ident_string_trim(uint8_t *data, size_t len)
 }
 
 /*
+ * Identify NES rom
+ */
+
+ static int
+ _ident_nes_rom(int fd, romident_rom_data_t *result)
+ {
+    uint8_t magic[] = {'N', 'E', 'S', 0x1a};
+    struct nes_header {
+        uint8_t magic[4];
+    } hdr;
+
+    if (lseek(fd, 0, SEEK_SET) == -1)
+        return 1;
+
+    if (read(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+        return 1;
+
+    if (memcmp(magic, hdr.magic, 4) != 0)
+        return 1;
+
+    /* identified */
+    memset(result, 0, sizeof(romident_rom_data_t));
+    result->system = ROMIDENT_NES;
+    return 0;
+ }
+
+/*
  * Identify SNES ROM
  */
 static int
@@ -193,6 +220,10 @@ static int
 _romident_identify(romident_t *ident, int fd, romident_rom_data_t *result)
 {
     int res;
+
+    res = _ident_nes_rom(fd, result);
+    if (res == 0)
+        return 0;
 
     res = _ident_snes_rom(fd, result);
     if (res == 0)

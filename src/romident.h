@@ -6,6 +6,7 @@
 typedef enum romident_system_t
 {
     ROMIDENT_UNKNOWN,
+    ROMIDENT_NES,
     ROMIDENT_SNES,
     ROMIDENT_SEGA_MEGA_DRIVE,
     ROMIDENT_GAME_BOY,
