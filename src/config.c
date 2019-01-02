@@ -133,7 +133,9 @@ config_init(config_t *config)
 
     config->root = json_load_file(HJORTRON_CONFIG_FILE, 0,&err);
     if (config->root == NULL)
-        return 1;
+    {
+        config->root = json_object();
+    }
 
     return 0;
 }
