@@ -161,6 +161,12 @@ _engine_transform_keyboard_event_to_gamecontroller(SDL_Event *event)
         case SDL_SCANCODE_SPACE:
             event->cbutton.button = SDL_CONTROLLER_BUTTON_START;
             break;
+        case SDL_SCANCODE_Q:
+            event->cbutton.button = RETRO_DEVICE_ID_JOYPAD_L;
+            break;
+        case SDL_SCANCODE_E:
+            event->cbutton.button = RETRO_DEVICE_ID_JOYPAD_R;
+            break;
 
         default:
             break;
