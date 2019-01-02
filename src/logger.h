@@ -24,7 +24,7 @@
 
 typedef enum logger_level_t
 {
-    LOG_ERROR,
+    LOG_ERROR = 0,
     LOG_WARNING,
     LOG_NOTICE,
     LOG_DEBUG

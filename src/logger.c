@@ -24,6 +24,8 @@
 
 #include "logger.h"
 
+extern int g_log_level;
+
 static const char *level_to_str[] = {
     "error",
     "warning",
@@ -34,11 +36,12 @@ static const char *level_to_str[] = {
 void
 logger(const char *component, logger_level_t level, const char *fmt, ...)
 {
-    char buf[2048];
+    char buf[2048] = {0};
     va_list ap;
     va_start(ap, fmt);
 
-    snprintf(buf, sizeof(buf), "%s(%s), %s\n", component, level_to_str[level], fmt);
+    if  (level <= g_log_level)
+        snprintf(buf, sizeof(buf), "%s(%s), %s\n", component, level_to_str[level], fmt);
 
     vfprintf(stderr, buf, ap);
     va_end(ap);

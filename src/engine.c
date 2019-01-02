@@ -27,6 +27,8 @@ extern scene_t main_scene;
 extern scene_t run_game_scene;
 extern scene_t in_game_menu_scene;
 
+logger_level_t g_log_level = LOG_NOTICE;
+
 static void
 _engine_handle_event(engine_t *engine, SDL_Event *event)
 {
