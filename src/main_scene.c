@@ -194,15 +194,15 @@ _main_scene_render_back(struct scene_t *scene)
         SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
         SDL_RenderFillRect(scene->engine->renderer, &center);
     }
-    else
-    {
-        center.x = center.y = 0;
-        center.w = center.h = MENU_BAR_ITEM_SIZE;
-        center.y = (h/2) - (MENU_BAR_ITEM_SIZE/2);
-        SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x7f);
-        SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
-        SDL_RenderFillRect(scene->engine->renderer, &center);
-    }
+
+    center.x = center.y = 0;
+    center.w = center.h = MENU_BAR_ITEM_SIZE;
+    center.y = (h/2) - (MENU_BAR_ITEM_SIZE/2);
+    SDL_SetRenderDrawColor(scene->engine->renderer,
+                           0x0, 0x0, 0x0,
+                           data->menu == 0 ? 0x40 : 0x7f);
+    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(scene->engine->renderer, &center);
 
     /* render menu_bar */
     SDL_QueryTexture(data->menu_bar.texture, &fmt, &access, &sw, &sh);
@@ -237,6 +237,7 @@ _main_scene_tick(struct scene_t *scene)
 static void
 _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 {
+    char rom_ch;
     main_scene_data_t *data = scene->opaque;
 
     if (event->type == SDL_CONTROLLERBUTTONDOWN)
@@ -253,6 +254,9 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                         data->menu_roms.index = 0;
                         _main_scene_update_rom_entries(scene);
                     }
+
+                    rom_ch = tolower(data->menu_roms.entries[data->menu_roms.index].name[0]);
+                    data->menu_bar.index = rom_ch - 'a';
                 }
                 else
                 {
@@ -272,6 +276,9 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                         data->menu_roms.index = ROM_ENTRIES - 1;
                         _main_scene_update_rom_entries(scene);
                     }
+
+                    rom_ch = tolower(data->menu_roms.entries[data->menu_roms.index].name[0]);
+                    data->menu_bar.index = rom_ch - 'a';
                 }
                 else
                 {
