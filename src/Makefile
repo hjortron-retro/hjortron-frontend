@@ -1,5 +1,6 @@
 OBJS=\
 	main.o \
+	logger.o \
 	romident.o \
 	vfs.o \
 	scraper.o \

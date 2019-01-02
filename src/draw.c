@@ -1,3 +1,4 @@
+#include "logger.h"
 #include "draw.h"
 #include <assert.h>
 
@@ -10,7 +11,7 @@ render_text(TTF_Font *font, int style, SDL_Color color, const char *text)
     surface = TTF_RenderUTF8_Blended(font, text, color);
     if (!surface)
     {
-        fprintf(stderr, "%s(), %s",__func__, TTF_GetError());
+        error("draw", "%s", TTF_GetError());
     }
     return surface;
 }

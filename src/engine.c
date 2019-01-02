@@ -28,6 +28,8 @@ _engine_render(engine_t *engine)
 static void
 _engine_scan_roms(engine_t *engine)
 {
+    notice("engine", "scanning directory %s for available roms",
+        config_get(&engine->config, "/hjortron/directories/roms", "~/Games/emulation/"));
     scraper_scan_directory(&engine->scraper, &engine->cores,
         config_get(&engine->config, "/hjortron/directories/roms", "~/Games/emulation/"));
 }
@@ -46,9 +48,14 @@ engine_init(engine_t *engine)
       return 1;
 
     /* initialize collection of cores */
+    notice("engine", "scanning for availble libretro cores");
     if (core_collection_init(&engine->cores,
         config_get(&engine->config, "/hjortron/directories/cores", "/usr/lib/libretro")) != 0)
+    {
+        error("engine", "no libretro cores was found at path '%s'",
+            config_get(&engine->config, "/hjortron/directories/cores", "/usr/lib/libretro"));
         return 1;
+    }
 
     /* scan rom directory and update datanase */
     _engine_scan_roms(engine);
@@ -67,16 +74,27 @@ engine_init(engine_t *engine)
         flags |=  SDL_WINDOW_FULLSCREEN_DESKTOP;
     if (SDL_CreateWindowAndRenderer(320, 240, flags,
 				    &engine->window, &engine->renderer) != 0)
+    {
+      error("engine", "failed to create window and renderer");
       return 1;
+    }
 
     /* aux */
     TTF_Init();
     SDL_GetRendererOutputSize(engine->renderer, &w, &h);
     engine->font = TTF_OpenFont("/tmp/font.ttf", w * 0.06);
+    if (engine->font == NULL)
+    {
+        error("engine", "failed to load font");
+        return 1;
+    }
 
     /* mount main scene */
     if (main_scene.mount(&main_scene, NULL) != 0)
+    {
+        error("engine", "failed to mount main scene");
         return 1;
+    }
 
     engine->stack[0] = &main_scene;
     engine->stack_idx = 0;

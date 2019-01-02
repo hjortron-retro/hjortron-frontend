@@ -3,6 +3,7 @@
 
 #include <SDL_ttf.h>
 
+#include "logger.h"
 #include "scraper.h"
 #include "config.h"
 #include "core.h"

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "logger.h"
 #include "vfs.h"
 #include "libretro.h"
 
@@ -47,7 +48,7 @@ _vfs_unix_open(const char *path, unsigned mode, unsigned hints)
     }
 
     snprintf(stream->file, sizeof(stream->file), "%s", path);
-    fprintf(stderr, "Open file %s\n", path);
+    debug("open file %s", path);
 
     return stream;
 }

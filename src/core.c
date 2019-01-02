@@ -2,6 +2,7 @@
 #include <dlfcn.h>
 #include <memory.h>
 
+#include "logger.h"
 #include "core.h"
 
 static void
@@ -139,8 +140,9 @@ core_collection_init(core_collection_t *cores, const char *core_path)
 
         /* Core is loaded */
         cores->count++;
-        printf("libretro core '%s' version '%s' loaded into slot %d\n",
-                core->name, core->version, i);
+
+        notice("core", "%s %s loaded into slot %d", core->name, core->version, i);
+
     }
 
     return (cores->count == 0) ? 1 : 0;

@@ -304,7 +304,7 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                     if (engine_push_scene(scene->engine, &run_game_scene,
                                     &data->menu_roms.entries[data->menu_roms.index]) != 0)
                     {
-                        fprintf(stderr, "Failed to run game...\n");
+                        warning("main_scene", "failed to start game");
                     }
                 }
                 else

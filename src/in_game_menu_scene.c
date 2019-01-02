@@ -4,6 +4,7 @@
 
 #include <SDL_ttf.h>
 
+#include "logger.h"
 #include "scene.h"
 #include "engine.h"
 #include "draw.h"
@@ -120,13 +121,13 @@ _in_game_menu_item_handler(menu_item_t *item, struct scene_t *scene)
 
         case GAME_SAVE: /* Save game */
             if (_in_game_menu_save_game(scene, "/tmp/state.rom") != 0)
-                fprintf(stderr, "%s(), failed to save game\n", __func__);
+                warning("in_game_menu_scene", "failed to save game");
             engine_pop_scene(scene->engine);
             break;
 
         case GAME_LOAD: /* Load game */
             if (_in_game_menu_load_game(scene, "/tmp/state.rom") != 0)
-                fprintf(stderr, "%s(), failed to load game\n", __func__);
+                warning("in_game_menu_scene", "failed to load game");
             engine_pop_scene(scene->engine);
             break;
 

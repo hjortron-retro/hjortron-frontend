@@ -1,3 +1,4 @@
+#include "logger.h"
 #include "scene.h"
 #include "engine.h"
 #include "draw.h"
@@ -133,10 +134,8 @@ _run_game_retro_input_state_callback(unsigned port, unsigned device, unsigned in
 {
     if (device == RETRO_DEVICE_JOYPAD && port == 0)
     {
-#if 0
-        fprintf(stderr, "State 0x%x, Port %d, device %d. index %d, id %d\n",
+        debug("State 0x%x, Port %d, device %d. index %d, id %d\n",
             (_run_game_scene_data.joypad_state >> id) & 1, port, device, index, id);
-#endif
         return (_run_game_scene_data.joypad_state >> id) & 1;
     }
     return 0;
@@ -162,14 +161,14 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
         {
             const unsigned *pval = data;
-            fprintf(stderr, "  Performance level hint: %d\n", *pval);
+            notice("run_game_scene","  Performance level hint: %d\n", *pval);
             return true;
         } break;
 
         case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
         {
             const bool *pval = data;
-            fprintf(stderr, "  Core can run without game data: %s\n", *pval?"true":"false");
+            notice("run_game_scene", "  Core can run without game data: %s\n", *pval?"true":"false");
             return true;
         } break;
 
@@ -183,7 +182,7 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
         {
             enum retro_pixel_format *pval = data;
-            fprintf(stderr, "  Pixel format: %d\n", *pval);
+            notice("run_game_scene", "  Pixel format: %d\n", *pval);
             return true;
         } break;
 
@@ -197,10 +196,10 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
         {
             const struct retro_input_descriptor *pval = data;
-            fprintf(stderr, "  Input Descriptors:\n");
+            notice("run_game_scene", "  Input Descriptors:\n");
             while(pval->description)
             {
-                fprintf(stderr, "      %d,%d,%d,%d: %s\n",
+                notice("run_game_scene", "      %d,%d,%d,%d: %s\n",
                             pval->port, pval->device,
                             pval->index, pval->id, pval->description);
                 pval++;
@@ -257,7 +256,7 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
         {
             struct retro_subsystem_info *pss = data;
-            fprintf(stderr, "  Subsystem: %s (%d roms)\n", pss->desc, pss->num_roms);
+            notice("run_game_scene", "  Subsystem: %s (%d roms)\n", pss->desc, pss->num_roms);
             return true;
         } break;
 
@@ -290,7 +289,7 @@ _run_game_retro_environment_callback(unsigned cmd, void *data)
         } break;
 
         default:
-            fprintf(stderr, "WARNING: Unhandle environment command: %d\n", cmd);
+            warning("run_game_scene", "unhandled environment command %d", cmd);
             break;
     }
     return false;
@@ -332,7 +331,7 @@ _run_game_scene_mount(struct scene_t *scene, void *opaque)
     int err;
     if ((err = snd_pcm_open(&data->pcm, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0)
     {
-        fprintf(stderr, "Failed to open playback device: %s", snd_strerror(err));
+        error("run_game_scene", "failed to open playback device %s", snd_strerror(err));
         return 1;
     }
 
@@ -340,7 +339,7 @@ _run_game_scene_mount(struct scene_t *scene, void *opaque)
         2, av.timing.sample_rate, 1, 64 * 1000);
     if (err < 0)
     {
-        fprintf(stderr, "Failed to configure audio device: %s", snd_strerror(err));
+        error("run_game_scene", "Failed to configure audio device: %s", snd_strerror(err));
         return 1;
     }
 

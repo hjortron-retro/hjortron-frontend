@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <memory.h>
 
+#include "logger.h"
 #include "scraper.h"
 
 static bool
@@ -45,7 +46,7 @@ _scraper_db_add_rom(scraper_t *scraper, core_t *core, const char *filename, cons
   sqlite3_stmt *insert_stmt;
   char query[512]={0};
 
-  // fprintf(stderr, "Adding rom: '%s'\n", filename);
+  debug("adding rom: '%s'", filename);
 
   strcat(query, "INSERT INTO roms(path, core, name) VALUES(?, ?, ?)");
 
@@ -116,6 +117,7 @@ scraper_init(scraper_t *scraper)
 
   if (sqlite3_open("./hjortron.db", &scraper->db) != SQLITE_OK)
   {
+    error("scraper", "failed to open/create database");
     return 1;
   }
 
