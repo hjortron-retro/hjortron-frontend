@@ -12,9 +12,8 @@ OBJS=\
 	in_game_menu_scene.o \
 	run_game_scene.o
 
-CC=gcc
 LIBS=-ldl
-CFLAGS=-g -Werror -Wall -I.\
+CFLAGS=-g -Wall -I.\
 	$(shell pkg-config -cflags alsa)\
 	$(shell pkg-config -cflags sdl2)\
 	$(shell pkg-config -cflags jansson)\
