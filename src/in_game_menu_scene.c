@@ -26,6 +26,7 @@ enum {
 
 
 typedef struct {
+    bool dirty;
     core_t *core;
     int32_t index;
     menu_item_t *menu;
@@ -165,6 +166,8 @@ _in_game_menu_scene_unmount(struct scene_t *scene)
 static void
 _in_game_menu_scene_enter(struct scene_t *scene)
 {
+    in_game_menu_scene_data_t *data = scene->opaque;
+    data->dirty = true;
 }
 
 static void
@@ -230,6 +233,15 @@ _in_game_menu_scene_render_overlay(struct scene_t *scene)
 static int
 _in_game_menu_scene_tick(struct scene_t *scene)
 {
+    in_game_menu_scene_data_t *data = scene->opaque;
+
+    if (data->dirty == false)
+    {
+        SDL_Delay(25);
+        return 0;
+    }
+
+    data->dirty = false;
     return 1;
 }
 
@@ -248,15 +260,18 @@ _in_game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 
             case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 data->index--;
+                data->dirty = true;
                 break;
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
                 data->index++;
+                data->dirty = true;
                 break;
         }
     }
 }
 
 in_game_menu_scene_data_t _in_game_menu_scene_data = {
+    false,
     NULL,
     0,
     _in_game_menu,

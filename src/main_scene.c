@@ -29,6 +29,8 @@ typedef struct {
         int32_t index;
     } menu_bar;
 
+    bool dirty;
+
 } main_scene_data_t;
 
 static int
@@ -126,6 +128,8 @@ _main_scene_unmount(struct scene_t *scene)
 static void
 _main_scene_enter(struct scene_t *scene)
 {
+    main_scene_data_t *data = scene->opaque;
+    data->dirty = true;
 }
 
 static void
@@ -218,6 +222,15 @@ _main_scene_render_overlay(struct scene_t *scene)
 static int
 _main_scene_tick(struct scene_t *scene)
 {
+    main_scene_data_t *data = scene->opaque;
+
+    if (data->dirty == false)
+    {
+        SDL_Delay(25);
+        return 0;
+    }
+
+    data->dirty = false;
     return 1;
 }
 
@@ -246,6 +259,7 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                     if (data->menu_bar.index > 0)
                         data->menu_bar.index--;
                 }
+                data->dirty = true;
                 break;
 
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
@@ -264,13 +278,16 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                     if (data->menu_bar.index < 25)
                         data->menu_bar.index++;
                 }
+                data->dirty = true;
                 break;
 
             case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
                 data->menu = 1; /* menu bar */
+                data->dirty = true;
                 break;
             case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
                 data->menu = 0; /* game list */
+                data->dirty = true;
                 break;
 
             case SDL_CONTROLLER_BUTTON_A:
@@ -291,6 +308,7 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
                     _main_scene_update_rom_entries(scene);
                     data->menu_roms.index = 0;
                 }
+                data->dirty = true;
                 break;
 
             case SDL_CONTROLLER_BUTTON_BACK:

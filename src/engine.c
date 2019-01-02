@@ -81,6 +81,8 @@ engine_init(engine_t *engine)
     engine->stack[0] = &main_scene;
     engine->stack_idx = 0;
 
+    main_scene.enter(&main_scene);
+
     return 0;
 }
 
