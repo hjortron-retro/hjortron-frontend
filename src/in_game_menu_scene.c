@@ -8,7 +8,7 @@
 #include "engine.h"
 #include "draw.h"
 
-#define MENU_ITEMS 7
+#define MENU_ITEMS 8
 
 typedef struct menu_item_t {
     uint8_t id;
@@ -22,8 +22,8 @@ enum {
     GAME_RESTART,
     GAME_LOAD,
     GAME_SAVE,
+    MENU_ENTRIES,
 };
-
 
 typedef struct {
     bool dirty;
@@ -193,6 +193,7 @@ _in_game_menu_scene_render_front(struct scene_t *scene)
     s = e = 0;
     s = 0;
     e = data->menu_item_cnt;
+    d.y = (h/2) - ((MENU_ENTRIES * (h / MENU_ITEMS)) / 2);
 
     for (int i=s; i < e; i++)
     {
@@ -218,7 +219,8 @@ _in_game_menu_scene_render_back(struct scene_t *scene)
     center.x = 0;
     center.w = w;
     center.h = h/MENU_ITEMS;
-    center.y = data->index * center.h;
+    center.y = (h/2) - ((MENU_ENTRIES * (h / MENU_ITEMS)) / 2);
+    center.y += data->index * center.h;
     SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
     SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
 
@@ -260,10 +262,14 @@ _in_game_menu_scene_handle_event(struct scene_t *scene, SDL_Event *event)
 
             case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 data->index--;
+                if (data->index < 0)
+                    data->index = 0;
                 data->dirty = true;
                 break;
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
                 data->index++;
+                if (data->index == MENU_ENTRIES)
+                    data->index = MENU_ENTRIES - 1;
                 data->dirty = true;
                 break;
         }
