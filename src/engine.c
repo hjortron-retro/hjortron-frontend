@@ -89,7 +89,11 @@ engine_init(engine_t *engine)
     in_game_menu_scene.engine = engine;
 
     /* initialize SDL */
-    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMECONTROLLER);
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_GAMECONTROLLER) < 0)
+    {
+        error("engine", "SDL_Init() failed: %s", SDL_GetError());
+        return 1;
+    }
 
     /* video */
     flags = 0;
@@ -98,7 +102,7 @@ engine_init(engine_t *engine)
     if (SDL_CreateWindowAndRenderer(320, 240, flags,
 				    &engine->window, &engine->renderer) != 0)
     {
-      error("engine", "failed to create window and renderer");
+      error("engine", "SDL_CreateWindowAndRenderer failed: %s", SDL_GetError());
       return 1;
     }
 
