@@ -109,7 +109,7 @@ engine_init(engine_t *engine)
     /* aux */
     TTF_Init();
     SDL_GetRendererOutputSize(engine->renderer, &w, &h);
-    engine->font = TTF_OpenFont("/tmp/font.ttf", w * 0.06);
+    engine->font = TTF_OpenFont(config_get(&engine->config, "/hjortron/font", "./font.ttf"), w * 0.06);
     if (engine->font == NULL)
     {
         error("engine", "failed to load font");
