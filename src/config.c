@@ -131,7 +131,7 @@ config_init(config_t *config)
     json_error_t err;
     memset(config,0, sizeof(config_t));
 
-    config->root = json_load_file(HJORTRON_CONFIG_FILE, 0,&err);
+    config->root = json_load_file("/etc/"HJORTRON_CONFIG_FILE, 0,&err);
     if (config->root == NULL)
     {
         config->root = json_object();
