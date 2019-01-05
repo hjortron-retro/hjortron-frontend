@@ -19,16 +19,18 @@
  *
  */
 
+#include <assert.h>
 #include "scene.h"
 
-void scene_render(scene_t *scene)
+void scene_render(scene_t *scene, SDL_Renderer *renderer)
 {
-    if (scene->render_back)
-        scene->render_back(scene);
-    if (scene->render_front)
-        scene->render_front(scene);
-    if (scene->render_overlay)
-        scene->render_overlay(scene);
+    assert(scene->render_back != NULL);
+    assert(scene->render_front != NULL);
+    assert(scene->render_overlay != NULL);
+
+    scene->render_back(scene, renderer);
+    scene->render_front(scene, renderer);
+    scene->render_overlay(scene, renderer);
 }
 
 void scene_handle_event(scene_t *scene, SDL_Event *event)

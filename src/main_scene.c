@@ -159,7 +159,7 @@ _main_scene_leave(struct scene_t *scene)
 }
 
 static void
-_main_scene_render_front(struct scene_t *scene)
+_main_scene_render_front(struct scene_t *scene, SDL_Renderer *renderer)
 {
     int i;
     int w, h;
@@ -184,7 +184,7 @@ _main_scene_render_front(struct scene_t *scene)
 }
 
 static void
-_main_scene_render_back(struct scene_t *scene)
+_main_scene_render_back(struct scene_t *scene, SDL_Renderer *renderer)
 {
     uint32_t fmt;
     int w, h, sw, sh, access;
@@ -192,17 +192,17 @@ _main_scene_render_back(struct scene_t *scene)
     main_scene_data_t *data = scene->opaque;
 
     /* clear screen */
-    SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
-    SDL_RenderClear(scene->engine->renderer);
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_RenderClear(renderer);
 
     /* draw side menu bar */
     center.x = center.y = 0;
     center.w = MENU_BAR_ITEM_SIZE;
     center.h = h;
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0xa0);
-    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderFillRect(scene->engine->renderer, &center);
+    SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0xa0);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(renderer, &center);
 
     /* draw item cursor line highlight */
     if (data->menu == 0 && data->menu_roms.entry_cnt)
@@ -211,19 +211,19 @@ _main_scene_render_back(struct scene_t *scene)
         center.w = w;
         center.h = h/ROM_ENTRIES;
         center.y = data->menu_roms.index * center.h;
-        SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
-        SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
-        SDL_RenderFillRect(scene->engine->renderer, &center);
+        SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x20);
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        SDL_RenderFillRect(renderer, &center);
     }
 
     center.x = center.y = 0;
     center.w = center.h = MENU_BAR_ITEM_SIZE;
     center.y = (h/2) - (MENU_BAR_ITEM_SIZE/2);
-    SDL_SetRenderDrawColor(scene->engine->renderer,
+    SDL_SetRenderDrawColor(renderer,
                            0x0, 0x0, 0x0,
                            data->menu == 0 ? 0x40 : 0x7f);
-    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderFillRect(scene->engine->renderer, &center);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(renderer, &center);
 
     /* render menu_bar */
     SDL_QueryTexture(data->menu_bar.texture, &fmt, &access, &sw, &sh);
@@ -232,11 +232,11 @@ _main_scene_render_back(struct scene_t *scene)
     center.w = sw;
     center.h = sh;
     center.y -= (data->menu_bar.index * MENU_BAR_ITEM_SIZE);
-    SDL_RenderCopy(scene->engine->renderer, data->menu_bar.texture, NULL, &center);
+    SDL_RenderCopy(renderer, data->menu_bar.texture, NULL, &center);
 }
 
 static void
-_main_scene_render_overlay(struct scene_t *scene)
+_main_scene_render_overlay(struct scene_t *scene, SDL_Renderer *renderer)
 {
 }
 

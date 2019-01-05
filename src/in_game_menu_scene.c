@@ -198,7 +198,7 @@ _in_game_menu_scene_leave(struct scene_t *scene)
 }
 
 static void
-_in_game_menu_scene_render_front(struct scene_t *scene)
+_in_game_menu_scene_render_front(struct scene_t *scene, SDL_Renderer *renderer)
 {
     int w,h;
     int s,e;
@@ -206,7 +206,7 @@ _in_game_menu_scene_render_front(struct scene_t *scene)
     SDL_Color black = {0, 0, 0};
     in_game_menu_scene_data_t *data = scene->opaque;
 
-    SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
+    SDL_GetRendererOutputSize(renderer, &w, &h);
 
     d.x = d.y = 0;
     d.w = w;
@@ -219,7 +219,7 @@ _in_game_menu_scene_render_front(struct scene_t *scene)
 
     for (int i=s; i < e; i++)
     {
-        draw_text(scene->engine->renderer, scene->engine->font, TTF_STYLE_NORMAL,
+        draw_text(renderer, scene->engine->font, TTF_STYLE_NORMAL,
             black, ALIGN_CENTER, data->menu[i].label, &d);
 
         d.y += d.h;
@@ -227,15 +227,15 @@ _in_game_menu_scene_render_front(struct scene_t *scene)
 }
 
 static void
-_in_game_menu_scene_render_back(struct scene_t *scene)
+_in_game_menu_scene_render_back(struct scene_t *scene, SDL_Renderer *renderer)
 {
     int w, h;
     SDL_Rect center;
     in_game_menu_scene_data_t *data = scene->opaque;
 
-    SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
-    SDL_RenderClear(scene->engine->renderer);
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_RenderClear(renderer);
 
     /* draw item cursor line highlight */
     center.x = 0;
@@ -243,14 +243,14 @@ _in_game_menu_scene_render_back(struct scene_t *scene)
     center.h = h/MENU_ITEMS;
     center.y = (h/2) - ((MENU_ENTRIES * (h / MENU_ITEMS)) / 2);
     center.y += data->index * center.h;
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0x0, 0x0, 0x0, 0x20);
-    SDL_SetRenderDrawBlendMode(scene->engine->renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x20);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    SDL_RenderFillRect(scene->engine->renderer, &center);
+    SDL_RenderFillRect(renderer, &center);
 }
 
 static void
-_in_game_menu_scene_render_overlay(struct scene_t *scene)
+_in_game_menu_scene_render_overlay(struct scene_t *scene, SDL_Renderer *renderer)
 {
 }
 

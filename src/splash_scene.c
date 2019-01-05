@@ -25,13 +25,16 @@
 
 #include "scene.h"
 #include "engine.h"
+#include "transition.h"
 
 extern scene_t main_scene;
+extern scene_t transition_scene;
 
 #include "logo.c"
 
 typedef struct {
     bool dirty;
+    uint32_t last_time;
     SDL_Texture *logo;
     SDL_Rect logo_size;
 } splash_scene_data_t;
@@ -63,7 +66,7 @@ _splash_scene_enter(struct scene_t *scene)
     data->logo_size.h = surface->h;
     data->logo = SDL_CreateTextureFromSurface(scene->engine->renderer, surface);
     SDL_FreeSurface(surface);
-
+    data->last_time = 0;
     data->dirty = true;
 }
 
@@ -79,7 +82,7 @@ _splash_scene_leave(struct scene_t *scene)
 }
 
 static void
-_splash_scene_render_front(struct scene_t *scene)
+_splash_scene_render_front(struct scene_t *scene, SDL_Renderer *renderer)
 {
     int w,h;
     SDL_Rect d;
@@ -89,43 +92,49 @@ _splash_scene_render_front(struct scene_t *scene)
     d = data->logo_size;
     if (data->logo)
     {
-        SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
+        SDL_GetRendererOutputSize(renderer, &w, &h);
         d.x = (w / 2) - (d.w / 2);
         d.y = (h / 2) - (d.h / 2);
-        SDL_RenderCopy(scene->engine->renderer, data->logo, NULL, &d);
+        SDL_RenderCopy(renderer, data->logo, NULL, &d);
     }
 }
 
 static void
-_splash_scene_render_back(struct scene_t *scene)
+_splash_scene_render_back(struct scene_t *scene, SDL_Renderer *renderer)
 {
     int w, h;
 
     /* clear scene */
-    SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
-    SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
-    SDL_RenderClear(scene->engine->renderer);
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_RenderClear(renderer);
 }
 
 static void
-_splash_scene_render_overlay(struct scene_t *scene)
+_splash_scene_render_overlay(struct scene_t *scene, SDL_Renderer *renderer)
 {
 }
 
 static int
 _splash_scene_tick(struct scene_t *scene)
 {
-    static last_time;
+    transition_t transition;
     splash_scene_data_t *data = scene->opaque;
 
-    if (last_time == 0)
+    if (data->last_time == 0)
     {
-        last_time = SDL_GetTicks();
+        data->last_time = SDL_GetTicks();
     }
 
-    if (SDL_GetTicks() > (last_time + 3000))
+    if (SDL_GetTicks() > (data->last_time + 3000))
     {
-        engine_push_scene(scene->engine, &main_scene, NULL);
+        transition.type = TRANSITION_XFADE;
+        transition.duration = 250;
+        transition.source = scene;
+        transition.source_opaque = NULL;
+        transition.dest = &main_scene;
+        transition.dest_opaque = NULL;
+        engine_push_scene(scene->engine, &transition_scene, &transition);
         return 0;
     }
 

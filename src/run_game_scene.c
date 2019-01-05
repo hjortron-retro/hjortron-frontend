@@ -393,19 +393,19 @@ _run_game_scene_leave(struct scene_t *scene)
 
 
 static void
-_run_game_scene_render_front(struct scene_t *scene)
+_run_game_scene_render_front(struct scene_t *scene, SDL_Renderer *renderer)
 {
 }
 
 static void
-_run_game_scene_render_back(struct scene_t *scene)
+_run_game_scene_render_back(struct scene_t *scene, SDL_Renderer *renderer)
 {
     run_game_scene_data_t *data = scene->opaque;
-    SDL_RenderCopy(scene->engine->renderer, data->screen, NULL, NULL);
+    SDL_RenderCopy(renderer, data->screen, NULL, NULL);
 }
 
 static void
-_run_game_scene_render_overlay(struct scene_t *scene)
+_run_game_scene_render_overlay(struct scene_t *scene, SDL_Renderer *renderer)
 {
 }
 

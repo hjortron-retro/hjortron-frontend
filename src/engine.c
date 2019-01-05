@@ -23,6 +23,7 @@
 #include <SDL_events.h>
 #include "engine.h"
 
+extern scene_t transition_scene;
 extern scene_t splash_scene;
 extern scene_t main_scene;
 extern scene_t run_game_scene;
@@ -45,7 +46,7 @@ _engine_tick(engine_t *engine)
 static void
 _engine_render(engine_t *engine)
 {
-    scene_render(engine->stack[engine->stack_idx]);
+    scene_render(engine->stack[engine->stack_idx], engine->renderer);
     SDL_RenderPresent(engine->renderer);
 }
 
@@ -85,6 +86,7 @@ engine_init(engine_t *engine)
     _engine_scan_roms(engine);
 
     /* initialize scenes */
+    transition_scene.engine = engine;
     splash_scene.engine = engine;
     main_scene.engine = engine;
     run_game_scene.engine = engine;
