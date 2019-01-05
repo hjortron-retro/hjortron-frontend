@@ -53,10 +53,12 @@ _engine_render(engine_t *engine)
 static void
 _engine_scan_roms(engine_t *engine)
 {
+    char alt[2046];
+    snprintf(alt, sizeof(alt), "%s/Games/emulation", getenv("HOME"));
     notice("engine", "scanning directory %s for available roms",
-        config_get(&engine->config, "/hjortron/directories/roms", "~/Games/emulation/"));
+        config_get(&engine->config, "/hjortron/directories/roms", alt));
     scraper_scan_directory(&engine->scraper, &engine->cores,
-        config_get(&engine->config, "/hjortron/directories/roms", "~/Games/emulation/"));
+        config_get(&engine->config, "/hjortron/directories/roms", alt));
 }
 
 int
