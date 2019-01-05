@@ -126,10 +126,10 @@ _splash_scene_tick(struct scene_t *scene)
         data->last_time = SDL_GetTicks();
     }
 
-    if (SDL_GetTicks() > (data->last_time + 3000))
+    if (SDL_GetTicks() > (data->last_time + 1000))
     {
         transition.type = TRANSITION_XFADE;
-        transition.duration = 250;
+        transition.duration = 500;
         transition.source = scene;
         transition.source_opaque = NULL;
         transition.dest = &main_scene;

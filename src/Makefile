@@ -10,6 +10,7 @@ OBJS=\
 	draw.o \
 	config.o \
 	transition_scene.o \
+	blank_scene.o \
 	splash_scene.o \
 	main_scene.o \
 	in_game_menu_scene.o \

@@ -22,8 +22,10 @@
 #include <SDL.h>
 #include <SDL_events.h>
 #include "engine.h"
+#include "transition.h"
 
 extern scene_t transition_scene;
+extern scene_t blank_scene;
 extern scene_t splash_scene;
 extern scene_t main_scene;
 extern scene_t run_game_scene;
@@ -89,6 +91,7 @@ engine_init(engine_t *engine)
 
     /* initialize scenes */
     transition_scene.engine = engine;
+    blank_scene.engine = engine;
     splash_scene.engine = engine;
     main_scene.engine = engine;
     run_game_scene.engine = engine;
@@ -122,17 +125,27 @@ engine_init(engine_t *engine)
         return 1;
     }
 
-    /* mount splash scene */
-    if (splash_scene.mount(&splash_scene, NULL) != 0)
+    /* mount blank scene */
+    SDL_Color white = {0xff, 0xff, 0xff};
+    if (blank_scene.mount(&blank_scene, &white) != 0)
     {
-        error("engine", "failed to mount splash scene");
+        error("engine", "failed to mount splash transition scene");
         return 1;
     }
-
-    engine->stack[0] = &splash_scene;
+    engine->stack[0] = &blank_scene;
     engine->stack_idx = 0;
+    blank_scene.enter(&blank_scene);
 
-    splash_scene.enter(&splash_scene);
+    /* now push a transition to splash_screen */
+    transition_t transition;
+    transition.type = TRANSITION_XFADE;
+    transition.duration = 1000;
+    transition.source = &blank_scene;
+    transition.source_opaque = &white;
+    transition.dest = &splash_scene;
+    transition.dest_opaque = NULL;
+
+    engine_push_scene(engine, &transition_scene, &transition);
 
     return 0;
 }
