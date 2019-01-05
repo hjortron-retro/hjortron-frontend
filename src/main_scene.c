@@ -191,7 +191,7 @@ _main_scene_render_back(struct scene_t *scene)
     SDL_Rect center;
     main_scene_data_t *data = scene->opaque;
 
-    /*clear screen */
+    /* clear screen */
     SDL_GetRendererOutputSize(scene->engine->renderer, &w, &h);
     SDL_SetRenderDrawColor(scene->engine->renderer, 0xff, 0xff, 0xff, 0xff);
     SDL_RenderClear(scene->engine->renderer);
@@ -205,7 +205,7 @@ _main_scene_render_back(struct scene_t *scene)
     SDL_RenderFillRect(scene->engine->renderer, &center);
 
     /* draw item cursor line highlight */
-    if (data->menu == 0)
+    if (data->menu == 0 && data->menu_roms.entry_cnt)
     {
         center.x = MENU_BAR_ITEM_SIZE;
         center.w = w;
@@ -268,6 +268,9 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
             case SDL_CONTROLLER_BUTTON_DPAD_UP:
                 if (data->menu == 0)
                 {
+                    if (data->menu_roms.entry_cnt == 0)
+                        break;
+
                     data->menu_roms.index--;
                     if (data->menu_roms.index < 0)
                     {
@@ -290,6 +293,9 @@ _main_scene_handle_event(struct scene_t *scene, SDL_Event *event)
             case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
                 if (data->menu == 0)
                 {
+                    if (data->menu_roms.entry_cnt == 0)
+                        break;
+
                     data->menu_roms.index++;
                     if (data->menu_roms.index >= ROM_ENTRIES)
                     {
