@@ -9,6 +9,7 @@ OBJS=\
 	scene.o \
 	draw.o \
 	config.o \
+	splash_scene.o \
 	main_scene.o \
 	in_game_menu_scene.o \
 	run_game_scene.o

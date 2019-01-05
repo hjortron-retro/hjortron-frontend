@@ -23,6 +23,7 @@
 #include <SDL_events.h>
 #include "engine.h"
 
+extern scene_t splash_scene;
 extern scene_t main_scene;
 extern scene_t run_game_scene;
 extern scene_t in_game_menu_scene;
@@ -84,6 +85,7 @@ engine_init(engine_t *engine)
     _engine_scan_roms(engine);
 
     /* initialize scenes */
+    splash_scene.engine = engine;
     main_scene.engine = engine;
     run_game_scene.engine = engine;
     in_game_menu_scene.engine = engine;
@@ -116,17 +118,17 @@ engine_init(engine_t *engine)
         return 1;
     }
 
-    /* mount main scene */
-    if (main_scene.mount(&main_scene, NULL) != 0)
+    /* mount splash scene */
+    if (splash_scene.mount(&splash_scene, NULL) != 0)
     {
-        error("engine", "failed to mount main scene");
+        error("engine", "failed to mount splash scene");
         return 1;
     }
 
-    engine->stack[0] = &main_scene;
+    engine->stack[0] = &splash_scene;
     engine->stack_idx = 0;
 
-    main_scene.enter(&main_scene);
+    splash_scene.enter(&splash_scene);
 
     return 0;
 }
