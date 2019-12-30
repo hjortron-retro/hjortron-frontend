@@ -36,19 +36,25 @@ logger_level_t g_log_level = LOG_NOTICE;
 static void
 _engine_handle_event(engine_t *engine, SDL_Event *event)
 {
+    if (overlay_handle_event(&engine->overlay, event) == 1)
+        return;
+
     scene_handle_event(engine->stack[engine->stack_idx], event);
 }
 
 static int
 _engine_tick(engine_t *engine)
 {
-    return scene_tick(engine->stack[engine->stack_idx]);
+    return scene_tick(engine->stack[engine->stack_idx]) | overlay_tick(&engine->overlay);
 }
 
 static void
 _engine_render(engine_t *engine)
 {
     scene_render(engine->stack[engine->stack_idx], engine->renderer);
+
+    overlay_render(&engine->overlay, engine->renderer);
+
     SDL_RenderPresent(engine->renderer);
 }
 
@@ -124,6 +130,9 @@ engine_init(engine_t *engine)
         error("engine", "failed to load font");
         return 1;
     }
+
+    engine->overlay.engine = engine;
+    overlay_init(&engine->overlay, engine->renderer, w * 0.10);
 
     /* mount blank scene */
     SDL_Color white = {0xff, 0xff, 0xff};

@@ -6,6 +6,7 @@ OBJS=\
 	scraper.o \
 	core.o \
 	engine.o \
+	overlay.o \
 	scene.o \
 	draw.o \
 	config.o \

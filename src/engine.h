@@ -25,6 +25,7 @@
 #include <SDL_ttf.h>
 
 #include "logger.h"
+#include "overlay.h"
 #include "scraper.h"
 #include "config.h"
 #include "core.h"
@@ -36,6 +37,7 @@ typedef struct engine_t
 {
     config_t config;
     scraper_t scraper;
+    overlay_t overlay;
 
     core_collection_t cores;
 
